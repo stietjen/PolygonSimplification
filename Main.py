@@ -1,99 +1,78 @@
 from math import sqrt
 
-file_name = "src/complex_input.txt"
-"""epsilon: all distances must be greater than epsilon to terminate simplification"""
-epsilon = 3
+fileName = "src/complex_input.txt"
 
+coordinates = []
 
-"""TODO: multi line support"""
+numberOfRounds = 100
+
+#TODO: multi line support
+
+#change Fileinput to Coordinates
 def readFileToCoordinates():
-    with open(file_name) as input_file:
+    with open(fileName) as input_file:
         content = input_file.readlines()
         content = [x.strip('\n') for x in content]
     for line in content:
         file_list = line.split(';')
-        coordinates = []
         for item in file_list:
             coordinates.append(item.split(','))
-        print "Read %s coordinates: %s from file %s" % (str(len(coordinates)), str(coordinates), file_name)
-        return coordinates
+        print "Read %s coordinates: %s from file %s" % (str(len(coordinates)), str(coordinates), fileName)
 
 
+#Define Distance TODO: brauchen wa?
 def distance(p1, p2):
     dx = int(p2[0]) - int(p1[0])
     dy = int(p2[1]) - int(p1[1])
     return sqrt((dx**2)+(dy**2))
 
 
-def findShortestDistance(coords):
-    dmin = 0.0
+#Define perpendicular distance from point to line
+def perpendicularDistance(point, start, stop):
+    x1, y1 = start
+    x2, y2 = stop
+    px, py = point
+    x1 = int(x1)
+    x2 = int(x2)
+    y1 = int(y1)
+    y2 = int(y2)
+    px = int(px)
+    py = int(py)
+    #To avoid having start and stop point as one
+    if x1 == x2:
+        return abs(x1-px)
+    m = float(y2 - y1)/float(x2 - x1)
+    b = y1 - m * x1
+    return abs(m * px - py + b)/sqrt(m * m + 1)
+
+def simplification():
+    for i in range(numberOfRounds):
+        if len(coordinates) <= 4:
+            print "Reached maximal optimization. Exit."
+            return
+        print "Start round %s: %s" %(i+1, coordinates)
+        simplificationRound()
+        print "End round   %s: %s" %(i+1, coordinates)
+
+def simplificationRound():
+    coordinates.extend(coordinates[0:2])
+
+    minDist = None
     index = 0
-    for i in range(len(coords)-1):
-        if i == 0:
-            dmin = distance(coords[i], coords[i+1])
-        else:
-            d = distance(coords[i], coords[i+1])
-            if d < dmin:
-                dmin = d
-                index = i
-    c = distance(coords[-1], coords[0])
 
-    """Sonderfall: Distanz Letzer und Erster"""
-    if c < dmin:
-        dmin = c
-        index = len(coords)
-    if dmin > epsilon:
-        print "shortest distance exceeded epsilon: terminate"
-        return []
-    print "Found shortest distance at index %s with distance %s" % (str(index), str(dmin))
-
-    re = [[index, dmin]]
-    c = index + 2
-    if index == len(coords) - 1:
-        c = 0
-    preDist = distance(coords[index-1], coords[index])
-    posDist = distance(coords[index+1], coords[c])
-    if preDist < posDist:
-        re.insert(0, [index-1, preDist])
-    else:
-        re.append([c, posDist])
-
-    return re
-
-def simplify(coords):
-    distances = findShortestDistance(coords)
-    if len(distances) > 0:
-        if len(coords) <= 4:
-            """delete complete object as it has only four coordinates and must not be simplified any more"""
-            del coords
-        index_a = distances[0][0]
-        a = coords[index_a]
-        index_c = distances[1][0]
-        c = coords[index_c]
-
-        dx = int(coords[index_a-1][0]) - int(coords[index_a][0])
-        dy = int(coords[index_a-1][1]) - int(coords[index_a][1])
-
-        """Delete Points a, b, c in reverse order to maintain indices positions"""
-        del coords[index_c]
-        del coords[index_a+1]
-        del coords[index_a]
-
-        if dx < dy:
-            """Insert new Point (d) with x-coordinate from point a and y-coordinate from point c"""
-            d = [a[0], c[1]]
-        else:
-            """Insert new Point (d) with x-coordinate from point c and y-coordinate from point a"""
-            d = [c[0], a[1]]
-        coords.insert(index_a, d)
-        """End simplification round. Call new round"""
-        print u"round: {0:s}".format(coords)
-        simplify(coords)
-    else:
-        print "terminated"
-        print coords
+    for i in range(len(coordinates)-3):
+        tempDist = perpendicularDistance(coordinates[i+1], coordinates[i], coordinates[i+2])
+        if tempDist < minDist or minDist == None:
+            minDist = tempDist
+            index = i+1
+    del coordinates[index]
+    del coordinates[-2:]
+    print "Removed index %s" %(index)
 
 
 if __name__ == "__main__":
-    coordinates = readFileToCoordinates()
-    simplify(coordinates)
+    readFileToCoordinates()
+    if len(coordinates) <= 4:
+        print "The amount of points is already reduced to a minumum of four points. Further reduction would be unnecassary."
+    else:
+        simplification()
