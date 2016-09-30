@@ -70,9 +70,9 @@ def perpendicular_distance(point, start, stop):
         point >> The distant point (must be (x,y) tuple)
         start, stop >> These two points define the line (both must be (x,y) tuples)
     """
-    x1, y1 = map(int, start)
-    x2, y2 = map(int, stop)
-    px, py = map(int, point)
+    x1, y1 = map(float, start)
+    x2, y2 = map(float, stop)
+    px, py = map(float, point)
     # In case of the x-coordinates from the start and the stop point being the same
     if x1 == x2:
         return abs(x1 - px)
