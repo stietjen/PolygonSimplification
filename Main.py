@@ -115,10 +115,7 @@ if __name__ == "__main__":
     read_file_to_coordinates()
     clean_old_output_file()
     for polygon in polygons:
-        if len(polygon) <= 4:
-            print "The amount of points is already reduced to a minimum of four. Further reduction is not necessary."
-        else:
-            print "\n\n\n"
-            coordinates = polygon
-            simplification()
-            write_coordinates_to_file()
+        print "\n\n\n"
+        coordinates = polygon
+        simplification()
+        write_coordinates_to_file()
